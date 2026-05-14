@@ -152,14 +152,20 @@ function setSessionCookie(res, token) {
     `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}`,
     "HttpOnly",
     "Path=/",
-    "SameSite=Strict",
+    "SameSite=Lax",
     `Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`,
   ];
+  if (process.env.NODE_ENV === "production") {
+    parts.push("Secure");
+  }
   res.setHeader("Set-Cookie", parts.join("; "));
 }
 
 function clearSessionCookie(res) {
-  const parts = [`${SESSION_COOKIE_NAME}=`, "HttpOnly", "Path=/", "SameSite=Strict", "Max-Age=0"];
+  const parts = [`${SESSION_COOKIE_NAME}=`, "HttpOnly", "Path=/", "SameSite=Lax", "Max-Age=0"];
+  if (process.env.NODE_ENV === "production") {
+    parts.push("Secure");
+  }
   res.setHeader("Set-Cookie", parts.join("; "));
 }
 
@@ -186,6 +192,8 @@ function requireAuth(req, res, next) {
   }
   const user = USERS.find((entry) => entry.id === session.userId);
   if (!user) return res.status(401).json({ error: "Account not found." });
+  session.expiresAt = Date.now() + SESSION_TTL_MS;
+  setSessionCookie(res, token);
   req.user = {
     id: user.id,
     name: user.name,

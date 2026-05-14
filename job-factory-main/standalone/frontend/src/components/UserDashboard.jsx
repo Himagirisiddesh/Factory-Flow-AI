@@ -18,6 +18,7 @@ export default function UserDashboard({ user, onLogout, onSessionExpired, onToas
   });
   const [loading, setLoading] = useState(true);
   const [refreshTick, setRefreshTick] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -69,19 +70,21 @@ export default function UserDashboard({ user, onLogout, onSessionExpired, onToas
   );
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.1),_transparent_35%),linear-gradient(180deg,_#07111b_0%,_#101827_100%)] text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_15%_15%,_rgba(34,211,238,0.16),_transparent_25%),radial-gradient(circle_at_85%_20%,_rgba(59,130,246,0.14),_transparent_25%)]" />
+    <div className={`min-h-screen ${isDarkMode ? 'bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.12),_transparent_35%),linear-gradient(180deg,_#07111b_0%,_#101827_100%)] text-white' : 'bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 text-slate-900'}`}>
+      <div className={`pointer-events-none fixed inset-0 ${isDarkMode ? 'bg-[radial-gradient(circle_at_15%_15%,_rgba(34,211,238,0.16),_transparent_25%),radial-gradient(circle_at_85%_20%,_rgba(59,130,246,0.14),_transparent_25%)]' : 'bg-[radial-gradient(circle_at_15%_15%,_rgba(59,130,246,0.12),_transparent_25%),radial-gradient(circle_at_85%_20%,_rgba(148,163,184,0.15),_transparent_25%)]'}`} />
       <div className="relative z-10">
         <WorkspaceHeader
           user={user}
           portalName="Customer Portal"
           portalHint="AI-powered manufacturing request workspace"
-          accentClassName="border-cyan-300/20 bg-cyan-300/10 text-cyan-100"
+          accentClassName={isDarkMode ? 'border-cyan-300/20 bg-cyan-300/10 text-cyan-100' : 'border-slate-300/20 bg-slate-200/30 text-slate-700'}
           onLogout={onLogout}
+          isDarkMode={isDarkMode}
+          onToggleTheme={() => setIsDarkMode((value) => !value)}
         />
 
-        <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 md:px-6">
-          <ProductCatalog products={catalog} />
+        <main className="mx-auto w-full max-w-full space-y-10 px-6 py-10 md:px-12">
+          <ProductCatalog products={catalog} isDarkMode={isDarkMode} />
 
           <section className="grid gap-4 md:grid-cols-3">
             {statCards.map((card, index) => (
@@ -90,11 +93,11 @@ export default function UserDashboard({ user, onLogout, onSessionExpired, onToas
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="rounded-[24px] border border-white/10 bg-white/5 p-5 backdrop-blur"
+                className={`rounded-[24px] border p-5 backdrop-blur ${isDarkMode ? 'border-white/10 bg-white/5' : 'border-slate-200/20 bg-white/90'}`}
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-400">{card.label}</p>
+                    <p className={`text-xs uppercase tracking-[0.18em] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{card.label}</p>
                     <p className={`mt-3 text-3xl font-black ${card.color}`}>{loading ? "..." : card.value}</p>
                   </div>
                   <card.icon className={`h-5 w-5 ${card.color}`} />
@@ -108,12 +111,13 @@ export default function UserDashboard({ user, onLogout, onSessionExpired, onToas
             onDataChanged={() => setRefreshTick((value) => value + 1)}
             onToast={onToast}
             onSessionExpired={onSessionExpired}
+            isDarkMode={isDarkMode}
           />
 
-          <section className="rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur">
+          <section className={`rounded-[32px] border p-6 backdrop-blur ${isDarkMode ? 'border-white/10 bg-white/5' : 'border-slate-200/20 bg-white/90'}`}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200">My Orders</p>
-              <h2 className="mt-2 text-2xl font-black text-white">All requests and admin decisions</h2>
+              <h2 className={`mt-2 text-2xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>All requests and admin decisions</h2>
             </div>
 
             {loading ? (
@@ -127,7 +131,7 @@ export default function UserDashboard({ user, onLogout, onSessionExpired, onToas
             ) : (
               <div className="mt-6 grid gap-5 xl:grid-cols-2">
                 {orders.map((order) => (
-                  <OrderCard key={order.id} order={order} />
+                  <OrderCard key={order.id} order={order} isDarkMode={isDarkMode} />
                 ))}
               </div>
             )}

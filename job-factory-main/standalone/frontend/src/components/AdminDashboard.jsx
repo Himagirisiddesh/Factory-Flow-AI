@@ -5,6 +5,7 @@ import OrderCard from "./OrderCard";
 import WorkspaceHeader from "./WorkspaceHeader";
 
 export default function AdminDashboard({ user, onLogout, onSessionExpired, onToast }) {
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshTick, setRefreshTick] = useState(0);
@@ -69,16 +70,18 @@ export default function AdminDashboard({ user, onLogout, onSessionExpired, onToa
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(139,92,246,0.12),_transparent_35%),linear-gradient(180deg,_#090f1f_0%,_#111827_100%)] text-white">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-[radial-gradient(circle_at_top_left,_rgba(139,92,246,0.12),_transparent_35%),linear-gradient(180deg,_#090f1f_0%,_#111827_100%)] text-white' : 'bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 text-slate-900'}`}>
       <WorkspaceHeader
         user={user}
         portalName="Admin Portal"
         portalHint="Review customer requests and update decisions"
         accentClassName="border-violet-300/30 bg-violet-300/10 text-violet-100"
         onLogout={onLogout}
+        isDarkMode={isDarkMode}
+        onToggleTheme={() => setIsDarkMode((value) => !value)}
       />
       <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 md:px-6">
-        <section className="rounded-[28px] border border-white/10 bg-white/5 p-5">
+        <section className={`rounded-[28px] border p-5 ${isDarkMode ? 'border-white/10 bg-white/5 text-white' : 'border-slate-200/20 bg-white/90 text-slate-900'}`}>
           <div className="flex items-center gap-3">
             <ClipboardCheck className="h-5 w-5 text-violet-200" />
             <h2 className="text-lg font-black">Incoming Order Requests</h2>
@@ -97,7 +100,7 @@ export default function AdminDashboard({ user, onLogout, onSessionExpired, onToa
         ) : (
           <div className="grid gap-6 xl:grid-cols-2">
             {orders.map((order) => (
-              <div key={order.orderId} className="space-y-4 rounded-[28px] border border-white/10 bg-slate-950/30 p-4">
+              <div key={order.orderId} className={`space-y-4 rounded-[28px] border p-4 ${isDarkMode ? 'border-white/10 bg-slate-950/30 text-white' : 'border-slate-200/20 bg-white/90 text-slate-900'}`}>
                 <OrderCard order={order} />
                 <div className="space-y-3">
                   <select

@@ -10,7 +10,7 @@ const SUGGESTIONS = [
   "Show my orders",
 ];
 
-export default function ChatPanel({ pendingDrafts = [], onDataChanged, onToast, onSessionExpired }) {
+export default function ChatPanel({ pendingDrafts = [], onDataChanged, onToast, onSessionExpired, isDarkMode }) {
   const [messages, setMessages] = useState([
     {
       id: "welcome",
@@ -26,7 +26,9 @@ export default function ChatPanel({ pendingDrafts = [], onDataChanged, onToast, 
   const [confirming, setConfirming] = useState(false);
   const [selectedDraftId, setSelectedDraftId] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const bottomRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   const activeDraft = useMemo(() => {
     const fallback = pendingDrafts[0] || null;
@@ -45,6 +47,22 @@ export default function ChatPanel({ pendingDrafts = [], onDataChanged, onToast, 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading, confirming]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const element = messagesContainerRef.current;
+      if (!element) return;
+      setShowScrollTop(element.scrollTop > 120);
+    };
+
+    const current = messagesContainerRef.current;
+    current?.addEventListener("scroll", handleScroll);
+    return () => current?.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    messagesContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const appendMessage = (message) => {
     setMessages((current) => [...current, message]);
@@ -125,55 +143,92 @@ export default function ChatPanel({ pendingDrafts = [], onDataChanged, onToast, 
   };
 
   return (
-    <section className="relative rounded-[32px] border border-cyan-300/20 bg-white/5 shadow-[0_20px_64px_rgba(6,182,212,0.12)] backdrop-blur">
-      <div className="border-b border-cyan-300/20 bg-slate-950/35 px-5 py-5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-300/10">
-            <Bot size={18} className="text-cyan-200" />
+    <section className={`relative rounded-[32px] border ${isDarkMode ? 'border-cyan-300/20 bg-gradient-to-br from-slate-950/95 to-slate-900/90 shadow-[0_32px_88px_rgba(6,182,212,0.18)]' : 'border-gray-300/20 bg-gradient-to-br from-white/95 to-slate-100/95 shadow-[0_32px_88px_rgba(15,23,42,0.08)]'} backdrop-blur-xl`}>
+      <div className={`border-b ${isDarkMode ? 'border-cyan-300/20 bg-slate-950/35' : 'border-gray-300/20 bg-white/35'} px-6 py-6`}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`flex h-14 w-14 items-center justify-center rounded-3xl border ${isDarkMode ? 'border-cyan-300/20 bg-cyan-300/10' : 'border-gray-300/20 bg-gray-300/10'}`}>
+              <Bot size={22} className={isDarkMode ? 'text-cyan-200' : 'text-gray-700'} />
+            </div>
+            <div>
+              <h2 className={`text-base font-black uppercase tracking-[0.24em] ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>AI Order Assistant</h2>
+              <p className={`mt-1 max-w-xl text-sm leading-6 ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>Inventory-aware NLP order parsing and verification workflow across your manufacturing request lifecycle.</p>
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={scrollToTop}
+            className={`inline-flex items-center justify-center rounded-full border px-5 py-3 text-sm font-semibold transition ${isDarkMode ? 'border-cyan-300/20 bg-cyan-300/10 text-cyan-100 hover:bg-cyan-300/15' : 'border-blue-300/20 bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+          >
+            Scroll earlier chats
+          </button>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white">AI Order Assistant</h2>
-            <p className="mt-1 text-xs text-slate-400">Inventory-aware NLP order parsing and verification workflow.</p>
+            <p className={`text-xs font-semibold uppercase tracking-[0.28em] ${isDarkMode ? 'text-cyan-200' : 'text-blue-600'}`}>Conversation</p>
+            <h3 className={`mt-2 text-3xl font-black ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>AI Order Assistant Chat</h3>
+          </div>
+          <p className={`max-w-2xl text-sm leading-7 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Use natural language to request inventory-backed products, then confirm with verification codes in one smooth chat flow.</p>
+        </div>
+
+        <div className={`mt-6 h-[52vh] md:h-[56vh] overflow-hidden rounded-[32px] border ${isDarkMode ? 'border-cyan-300/20 bg-slate-950/80' : 'border-gray-200/60 bg-white/95'} shadow-[inset_0_12px_48px_rgba(15,23,42,0.14)]`}>
+          <div
+            ref={messagesContainerRef}
+            className={`relative h-full overflow-y-auto px-5 py-5 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
+          >
+          <AnimatePresence initial={false}>
+            {messages.map((message) => {
+              const isUser = message.role === "user";
+              return (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 10, x: isUser ? 10 : -10 }}
+                  animate={{ opacity: 1, y: 0, x: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={`mb-4 flex ${isUser ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[92%] rounded-[24px] border px-5 py-4 shadow-sm ${
+                      isUser
+                        ? isDarkMode
+                          ? "border-slate-700 bg-slate-900 text-slate-100"
+                          : "border-slate-200 bg-slate-100 text-slate-900"
+                        : isDarkMode
+                          ? "border-cyan-300/30 bg-cyan-400/10 text-cyan-100"
+                          : "border-blue-300/30 bg-blue-100 text-slate-900"
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap text-sm leading-7">{message.content}</p>
+                    {message.entities ? (
+                      <div className={`mt-3 rounded-2xl border p-3 ${isDarkMode ? 'border-white/10 bg-slate-950/35 text-slate-200' : 'border-gray-300/20 bg-gray-100 text-gray-700'}`}>
+                        {Object.entries(message.entities).map(([key, value]) => (
+                          <div key={key} className="mb-2 flex flex-col gap-2 rounded-[18px] border border-current bg-white/5 p-3 md:flex-row md:justify-between md:gap-4">
+                            <span className={isDarkMode ? 'text-slate-400' : 'text-gray-500'}>{key}</span>
+                            <span className={`text-right font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{String(value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+          {showScrollTop ? (
+            <button
+              type="button"
+              onClick={scrollToTop}
+              className="absolute bottom-4 right-4 z-10 inline-flex items-center gap-2 rounded-full border border-white/15 bg-slate-950/90 px-4 py-2 text-sm font-semibold text-white shadow-2xl transition hover:bg-slate-900"
+            >
+              Earlier chats
+            </button>
+          ) : null}
           </div>
         </div>
-      </div>
-
-      <div className="max-h-[48vh] overflow-y-auto px-4 py-5 md:max-h-[52vh]">
-        <AnimatePresence initial={false}>
-          {messages.map((message) => {
-            const isUser = message.role === "user";
-            return (
-              <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 10, x: isUser ? 10 : -10 }}
-                animate={{ opacity: 1, y: 0, x: 0 }}
-                transition={{ duration: 0.2 }}
-                className={`mb-4 flex ${isUser ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[92%] rounded-[24px] border px-4 py-3 ${
-                    isUser ? "border-white/10 bg-white/10 text-white" : "border-cyan-300/20 bg-cyan-300/10 text-slate-100"
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap text-sm leading-7">{message.content}</p>
-                  {message.entities ? (
-                    <div className="mt-3 rounded-2xl border border-white/10 bg-slate-950/35 p-3 text-xs text-slate-200">
-                      {Object.entries(message.entities).map(([key, value]) => (
-                        <div key={key} className="mb-1 flex justify-between gap-4">
-                          <span className="text-slate-400">{key}</span>
-                          <span className="text-right text-white">{String(value)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
         {loading ? (
           <div className="mb-4 flex justify-start">
-            <div className="flex items-center gap-2 rounded-[24px] border border-cyan-300/20 bg-cyan-300/10 px-4 py-3 text-sm text-slate-200">
+            <div className={`flex items-center gap-2 rounded-[24px] border ${isDarkMode ? 'border-cyan-300/20 bg-cyan-300/10' : 'border-blue-300/20 bg-blue-50'} px-4 py-3 text-sm ${isDarkMode ? 'text-slate-200' : 'text-gray-700'}`}>
               <Loader2 size={14} className="animate-spin" />
               Validating inventory and parsing request...
             </div>
@@ -182,14 +237,14 @@ export default function ChatPanel({ pendingDrafts = [], onDataChanged, onToast, 
         <div ref={bottomRef} />
       </div>
 
-      <div className="sticky bottom-0 border-t border-cyan-300/20 bg-slate-950/70 px-4 py-4 backdrop-blur">
+      <div className={`sticky bottom-0 border-t ${isDarkMode ? 'border-cyan-300/20 bg-slate-950/70' : 'border-gray-300/20 bg-white/70'} px-4 py-4 backdrop-blur`}>
         <div className="mb-3 flex flex-wrap gap-2">
           {SUGGESTIONS.map((suggestion) => (
             <button
               key={suggestion}
               type="button"
               onClick={() => handleSend(suggestion)}
-              className="rounded-full border border-cyan-300/20 px-3 py-1.5 text-[11px] font-semibold text-slate-200 transition hover:bg-white/10"
+              className={`rounded-full border ${isDarkMode ? 'border-cyan-300/20 hover:bg-white/10' : 'border-gray-300/20 hover:bg-gray-200/50'} px-3 py-1.5 text-[11px] font-semibold ${isDarkMode ? 'text-slate-200' : 'text-gray-700'} transition`}
             >
               {suggestion}
             </button>
@@ -204,37 +259,37 @@ export default function ChatPanel({ pendingDrafts = [], onDataChanged, onToast, 
           className="flex gap-3"
         >
           <div className="relative flex-1">
-            <ClipboardList size={14} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+            <ClipboardList size={14} className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`} />
             <input
               value={input}
               onChange={(event) => setInput(event.target.value)}
               placeholder="Describe your manufacturing request..."
               disabled={loading}
-              className="w-full rounded-2xl border border-white/10 bg-slate-900/80 py-3 pl-10 pr-4 text-sm text-white outline-none transition focus:border-cyan-300/40"
+              className={`w-full rounded-2xl border ${isDarkMode ? 'border-white/10 bg-slate-900/80 focus:border-cyan-300/40' : 'border-gray-300/20 bg-gray-100/80 focus:border-blue-300/40'} py-3 pl-10 pr-4 text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'} outline-none transition`}
             />
           </div>
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="inline-flex min-w-[52px] items-center justify-center rounded-2xl bg-cyan-300 px-4 py-3 font-semibold text-slate-950 transition disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-slate-500"
+            className={`inline-flex min-w-[52px] items-center justify-center rounded-2xl ${isDarkMode ? 'bg-cyan-300 disabled:bg-white/10 disabled:text-slate-500' : 'bg-blue-500 disabled:bg-gray-300/50 disabled:text-gray-400'} px-4 py-3 font-semibold ${isDarkMode ? 'text-slate-950' : 'text-white'} transition disabled:cursor-not-allowed`}
           >
             <Send size={15} />
           </button>
         </form>
 
-        <div className="mt-4 rounded-[24px] border border-cyan-300/20 bg-cyan-300/10 p-4">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-100">
+        <div className={`mt-4 rounded-[24px] border ${isDarkMode ? 'border-cyan-300/20 bg-cyan-300/10' : 'border-blue-300/20 bg-blue-50/50'} p-4`}>
+          <div className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] ${isDarkMode ? 'text-cyan-100' : 'text-blue-700'}`}>
             <Verified size={12} />
             Verification
           </div>
           {activeDraft ? (
             <>
-              <div className="mt-3 rounded-2xl border border-white/10 bg-slate-950/45 p-4 text-sm text-slate-200">
-                <p className="font-semibold text-white">{activeDraft.requestId}</p>
-                <p className="mt-1 text-xs text-slate-400">
+              <div className={`mt-3 rounded-2xl border ${isDarkMode ? 'border-white/10 bg-slate-950/45' : 'border-gray-300/20 bg-gray-100/50'} p-4 text-sm ${isDarkMode ? 'text-slate-200' : 'text-gray-700'}`}>
+                <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{activeDraft.requestId}</p>
+                <p className={`mt-1 text-xs ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
                   {activeDraft.quantity} {activeDraft.productName} · Deadline {activeDraft.deadline}
                 </p>
-                <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-cyan-100">
+                <p className={`mt-2 text-xs font-bold uppercase tracking-[0.18em] ${isDarkMode ? 'text-cyan-100' : 'text-blue-600'}`}>
                   Code {activeDraft.verificationCode}
                 </p>
               </div>

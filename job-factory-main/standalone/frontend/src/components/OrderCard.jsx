@@ -11,54 +11,54 @@ function formatDate(value) {
   });
 }
 
-export default function OrderCard({ order }) {
+export default function OrderCard({ order, isDarkMode = true }) {
   return (
     <motion.article
       layout
       whileHover={{ y: -2 }}
-      className="rounded-[28px] border border-white/10 bg-slate-950/35 p-5 shadow-[0_18px_48px_rgba(0,0,0,0.18)]"
+      className={`rounded-[28px] border p-5 shadow-[0_18px_48px_rgba(0,0,0,0.18)] ${isDarkMode ? 'border-white/10 bg-slate-950/35' : 'border-slate-200/20 bg-white/90'}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <span className="inline-flex items-center rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-cyan-200">
+          <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] ${isDarkMode ? 'border-cyan-300/20 bg-cyan-300/10 text-cyan-200' : 'border-slate-300/20 bg-slate-200/70 text-slate-700'}`}>
             {order.orderId}
           </span>
-          <h3 className="mt-3 text-lg font-bold text-white">{order.productName}</h3>
+          <h3 className={`mt-3 text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{order.productName}</h3>
         </div>
         <StatusBadge status={order.status} />
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-200">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-400">
+        <div className={`rounded-2xl border p-3 text-sm ${isDarkMode ? 'border-white/10 bg-white/5 text-slate-200' : 'border-slate-200/20 bg-gray-100 text-slate-900'}`}>
+          <div className={`flex items-center gap-2 text-xs uppercase tracking-[0.18em] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
             <Package2 size={12} />
             Quantity
           </div>
-          <p className="mt-2 font-semibold text-white">{order.quantity}</p>
+          <p className={`mt-2 font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{order.quantity}</p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-200">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-400">
+        <div className={`rounded-2xl border p-3 text-sm ${isDarkMode ? 'border-white/10 bg-white/5 text-slate-200' : 'border-slate-200/20 bg-gray-100 text-slate-900'}`}>
+          <div className={`flex items-center gap-2 text-xs uppercase tracking-[0.18em] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
             <Factory size={12} />
             Material
           </div>
-          <p className="mt-2 font-semibold text-white">{order.material}</p>
+          <p className={`mt-2 font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{order.material}</p>
         </div>
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-200">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-400">
+        <div className={`rounded-2xl border p-3 text-sm ${isDarkMode ? 'border-white/10 bg-white/5 text-slate-200' : 'border-slate-200/20 bg-gray-100 text-slate-900'}`}>
+          <div className={`flex items-center gap-2 text-xs uppercase tracking-[0.18em] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
             <CalendarDays size={12} />
             Deadline
           </div>
-          <p className="mt-2 font-semibold text-white">{formatDate(order.deadline)}</p>
+          <p className={`mt-2 font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{formatDate(order.deadline)}</p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-200">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-400">
+        <div className={`rounded-2xl border p-3 text-sm ${isDarkMode ? 'border-white/10 bg-white/5 text-slate-200' : 'border-slate-200/20 bg-gray-100 text-slate-900'}`}>
+          <div className={`flex items-center gap-2 text-xs uppercase tracking-[0.18em] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
             <ShieldCheck size={12} />
             Quality Grade
           </div>
-          <p className="mt-2 font-semibold text-white">{order.qualityGrade}</p>
+          <p className={`mt-2 font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{order.qualityGrade}</p>
         </div>
       </div>
     </motion.article>
